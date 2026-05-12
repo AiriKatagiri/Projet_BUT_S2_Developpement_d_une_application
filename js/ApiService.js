@@ -16,7 +16,8 @@ export class ApiService {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        // Todo compléter le body
+        name : pseudo,
+        difficulty : difficulty,
       })
     });
 
