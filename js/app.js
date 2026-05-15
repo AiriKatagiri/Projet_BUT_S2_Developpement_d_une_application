@@ -9,7 +9,6 @@ createFrom();
 
 document.querySelector('.game-form').addEventListener('submit', async function (event) {
   event.preventDefault();
-  // Todo À compléter
   const pseudo = event.target.name.value;
   const diff = Number(event.target.difficulty.value);
   const theme = event.target.theme.value;
@@ -18,7 +17,7 @@ document.querySelector('.game-form').addEventListener('submit', async function (
     // Todo Spécifier les paramètres de createGame()
     const data = await ApiService.createGame(pseudo,diff);
     console.log('Success:', data, data.id);
-    game.startGame(data.id, theme, difficulty);
+    game.startGame(data.id, theme, diff);
   } catch (error) {
     console.error('Error:', error);
     alert(error.message || 'Erreur lors de la création de la partie');

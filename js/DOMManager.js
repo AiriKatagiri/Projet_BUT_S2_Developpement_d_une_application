@@ -1,5 +1,30 @@
 export class DOMManager {
 
+  /**
+   * @type {HTMLSelectElement} firstCard est la première carte choisie
+   */
+  #firstCard = null;
+  /**
+   * @type {HTMLSelectElement} secondCard est la seconde carte choisie
+   */
+  #secondCard = null;
+  /**
+   * @type {boolean} lockBoard est vrai si on ne peut pas retourner les cartes
+   */
+  #lockBoard = false;
+  /**
+   * @type {function} onMatchCallback est la fonction à appeler quand une paire est trouvée
+   */
+  #onMatchCallback = null;
+
+
+  /**
+   * Définit la fonction à appeler quand une paire est trouvée
+   * @param {Function} callback
+   */
+  setOnMatch(callback) {
+    this.#onMatchCallback = callback;
+  }
 
   /**
    * Ajoute toutes les images d'une collection sur le gameBoard
@@ -7,33 +32,97 @@ export class DOMManager {
    */
   createCards(images) {
     const gameBoard = document.querySelector('.game-board');
-    if(!gameBoard) return;
+    if (!gameBoard) return;
+
     gameBoard.innerHTML = '';
-    if (images.length > 12) {
-      gameBoard.classList.add('cols-5');
-    } else {
-      gameBoard.classList.remove('cols-5');
-    }
+
+    const totalCards = images.length;
+    let columns = 4; // Défaut
+
+    if (totalCards === 10) columns = 5;
+    else  columns = 4;
+    gameBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+
     images.forEach(image => {
       const card = document.createElement('div');
       card.classList.add('card');
+      card.dataset.id = image.id;
 
       card.innerHTML = `
         <div class="card-inner">
           <div class="card-front">
             <img src="./assets/images/mask1.jpg" alt="Carte cachée">
           </div>
-          <div class="card-back hidden">
+          <div class="card-back">
             <img src="${image.url}" alt="${image.name}">
           </div>
         </div>
       `;
 
-      // TODO: Ajouter l'événement 'click' ici plus tard pour retourner la carte
-      // card.addEventListener('click', () => { ... });
-
+      card.addEventListener('click', () => this.#handleCardClick(card));
       gameBoard.appendChild(card);
     });
+  }
+
+
+  #handleCardClick(card) {
+    if (this.#lockBoard) return;
+    if (card === this.#firstCard) return;
+    if (card.classList.contains('flip')) return;
+
+    card.classList.add('flip');
+
+    if (!this.#firstCard) {
+
+      this.#firstCard = card;
+      return;
+    }
+
+    this.#secondCard = card;
+    this.#checkForMatch();
+  }
+
+  #checkForMatch() {
+
+    const isMatch = this.#firstCard.dataset.id === this.#secondCard.dataset.id;
+
+    if (isMatch) {
+      this.#disableCards();
+    } else {
+      this.#unflipCards();
+    }
+  }
+
+  #disableCards() {
+
+    if (this.#onMatchCallback) {
+      this.#onMatchCallback();
+    }
+
+
+    this.#resetBoard();
+  }
+
+  #unflipCards() {
+
+    this.#lockBoard = true;
+
+    setTimeout(() => {
+
+      this.#firstCard.classList.remove('flip');
+      this.#secondCard.classList.remove('flip');
+
+      this.#resetBoard();
+    }, 1000);
+  }
+
+  #resetBoard() {
+    [this.#firstCard, this.#secondCard] = [null, null];
+    this.#lockBoard = false;
+  }
+
+
+
 
     /**
      * Voici un exemple de contenu de card permettant de contenir une partie masqué
@@ -49,7 +138,7 @@ export class DOMManager {
      </div>
      */
 
-  }
+
 }
 
 /**
@@ -82,6 +171,13 @@ export function createFrom(){
   form.append(labelChoixImg);
   const choixImage = createChoixImg();
   form.append(choixImage);
+
+  const labelChoixMode = document.createElement('label');
+  labelChoixMode.htmlFor = 'mode';
+  labelChoixMode.textContent = 'Choisissez un mode de jeu:';
+  form.append(labelChoixMode);
+  const choixMode = createChoixMode();
+  form.append(choixMode);
 
   const button = document.createElement('button');
   button.setAttribute('type','submit');
@@ -150,3 +246,25 @@ function createChoixImg(){
   return choixImage;
 }
 
+function createChoixMode(){
+  const choixMode = document.createElement('select');
+  choixMode.setAttribute('name', 'mode');
+  choixMode.setAttribute('id', 'mode');
+
+  const optionBas = document.createElement('option');
+  optionBas.setAttribute('value','basique');
+  optionBas.innerText = 'Basique';
+  choixMode.append(optionBas);
+
+  const optionVie = document.createElement('option');
+  optionVie.setAttribute('value','vie');
+  optionVie.innerText = 'Vies limitées';
+  choixMode.append(optionVie);
+
+  const optionTime = document.createElement('option');
+  optionTime.setAttribute('value','time');
+  optionTime.innerText = 'Temps limité';
+  choixMode.append(optionTime);
+
+  return choixMode;
+}
