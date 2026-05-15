@@ -8,13 +8,23 @@ export class Game {
   #id
 
   /**
-   * @type {number} pairsRestante nombre de pair de carte restante
+   * @type {number} pairsRestante nombre de paires de carte restante
    */
   #pairsRestante;
 
+  /**
+   * @type {number || null} timerInterval le setInterval
+   */
   #timerInterval = null;
+
+  /**
+   * @type {number} secondsElapsed le nombre de secondes écoulées depuis le début de la partie
+   */
   #secondsElapsed = 0;
 
+  /**
+   * @type {HTMLAudioElement} victorySound l'audio si victoire
+   */
   #victorySound = new Audio('./assets/sounds/victory.mp3');
   async endGame() {
     this.#stopTimer();
@@ -51,16 +61,14 @@ export class Game {
   }
 
   #launchConfetti() {
-    // Vérifie que la librairie est chargée
     if (typeof confetti === 'function') {
-      // Effet de base
+
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }
       });
 
-      // Effet supplémentaire (plus joli) : deux explosions sur les côtés
       setTimeout(() => {
         confetti({
           particleCount: 50,
@@ -79,24 +87,19 @@ export class Game {
   }
 
   #resetToHome() {
-    // 1. Cacher la zone de jeu
     const gameArea = document.querySelector('.game-area');
     if (gameArea) gameArea.classList.add('hidden');
 
-    // 2. Réafficher le formulaire
     const setupForm = document.querySelector('.setup-form');
     if (setupForm) setupForm.classList.remove('hidden');
 
-    // 3. Vider le plateau de jeu (optionnel, pour nettoyer)
     const gameBoard = document.querySelector('.game-board');
     if (gameBoard) gameBoard.innerHTML = '';
 
-    // 4. Réinitialiser les variables internes
     this.#id = null;
     this.#pairsRestante = 0;
     this.#secondsElapsed = 0;
 
-    // 5. Remettre l'affichage du timer à 00:00 (au cas où)
     this.#updateTimerDisplay();
 
     console.log("Retour à l'accueil effectué.");
@@ -153,13 +156,12 @@ export class Game {
   }
 
   #startTimer() {
-    // Sécurité :清除 un ancien timer s'il existe
     if (this.#timerInterval) clearInterval(this.#timerInterval);
 
     this.#timerInterval = setInterval(() => {
       this.#secondsElapsed++;
       this.#updateTimerDisplay();
-    }, 1000); // 1000ms = 1 seconde
+    }, 1000);
   }
 
   #stopTimer() {
@@ -180,7 +182,6 @@ export class Game {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
-    // Ajoute un zéro devant si < 10 (ex: "05" au lieu de "5")
     const fmtMin = minutes < 10 ? `0${minutes}` : minutes;
     const fmtSec = seconds < 10 ? `0${seconds}` : seconds;
 
