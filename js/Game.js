@@ -251,7 +251,7 @@ export class Game {
   }
 
   /** @type {Object} nombre de secondes selon la difficulté */
-  #timeConfig = { 4: 15, 5: 20, 6: 25, 8: 40 };
+  #timeConfig = { 4: 20, 5: 25, 6: 30, 8: 40 };
 
   /**
    * Initialise le temps limite selon la difficulté.
