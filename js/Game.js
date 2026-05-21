@@ -1,7 +1,7 @@
 import {imageCollections} from './ImageCollection.js';
 import {ApiService} from './ApiService.js';
 import {DOMManager} from './DOMManager.js';
-export class Game {
+class Game {
   /** @type {number || null} identifiant de la partie en cours. */
   #id
 
@@ -152,11 +152,24 @@ export class Game {
         <div class="game-timer" id="game-timer">00:00</div>
         <div id="lives-container">${livesDisplay}</div>
         <div id="limitTime-container">${maxTime}</div>
+        <button id="indice">Indice</button>
         <button id="abandon">Abandonner</button>
       `;
-      document.getElementById('abandon').addEventListener('click', () => {this.endGame('abandon').catch(console.error);});
+      document.querySelector('#abandon').addEventListener('click', () => {this.endGame('abandon').catch(console.error);});
+      const domManager = new DOMManager();
+      const btnIndice = document.querySelector('#indice');
+
+      btnIndice.addEventListener('click', () => {
+        domManager.unflipAllCards();
+        btnIndice.disabled = true;
+        btnIndice.style.opacity = '0.5';
+        btnIndice.style.cursor = 'not-allowed';
+        btnIndice.title = "Indice déjà utilisé";
+      });
     }
   }
+
+
 
   /**
    * Affiche les cartes
@@ -173,6 +186,11 @@ export class Game {
     domManager.setOnMatch(() => {
       this.#pairsRestante--;
       console.log("Paires restantes :", this.#pairsRestante);
+      if (this.#gameMode === 'melange') {
+        setTimeout(() => {
+          this.#melangePlateau();
+        }, 300);
+      }
       if (this.#pairsRestante === 0) {
         setTimeout(() => {
           this.endGame('victoire').catch(console.error);
@@ -313,5 +331,26 @@ export class Game {
 
     return `${fmtMin}:${fmtSec}`;
   }
+
+  #melangePlateau(){
+    const gameBoard = document.querySelector(".game-board");
+    if(!gameBoard) return;
+    const cards = Array.from(document.querySelectorAll(".card"));
+    const playableCards = cards.filter(card => !card.classList.contains('flip'));
+    if (playableCards.length < 2) return;
+    playableCards.forEach(card => card.classList.add('shuffling'));
+
+    setTimeout(() => {
+      playableCards.forEach(card => card.remove());
+      playableCards.sort(() => Math.random() - 0.5);
+      playableCards.forEach(card => gameBoard.appendChild(card));
+      setTimeout(() => {
+        playableCards.forEach(card => card.classList.remove('shuffling'));
+      }, 50);
+
+    }, 600);
+  }
 }
+
+export default Game
 

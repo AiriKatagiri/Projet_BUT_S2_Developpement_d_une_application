@@ -14,7 +14,6 @@ export class DOMManager {
   /** @type {function} onMismatchCallback est la fonction à appeler quand une paire n'est pas correspondante*/
   #onMismatchCallback = null;
 
-
   /**
    * Définit la fonction à appeler quand une paire est trouvée
    * @param {Function} callback
@@ -78,7 +77,6 @@ export class DOMManager {
       this.#firstCard = card;
       return;
     }
-
     this.#secondCard = card;
     this.#checkForMatch();
   }
@@ -106,7 +104,7 @@ export class DOMManager {
   }
 
   /**
-   * Retourne les cartes.
+   * Retourne les deux cartes.
    */
   #unflipCards() {
     this.#lockBoard = true;
@@ -121,13 +119,31 @@ export class DOMManager {
   }
 
   /**
+   * Retourne toutes les cartes
+   */
+  unflipAllCards() {
+    const oldLockState = this.#lockBoard;
+    this.#lockBoard = true;
+    const gameBoard = document.querySelector(".game-board");
+    if (!gameBoard) return;
+    const cards = Array.from(document.querySelectorAll(".card"));
+    const playableCards = cards.filter(card => !card.classList.contains('flip'));
+
+    if (playableCards.length === 0) return;
+    playableCards.forEach(card => card.classList.add('flip'));
+    setTimeout(() => {
+      playableCards.forEach(card => card.classList.remove('flip'));
+      this.#lockBoard = oldLockState;
+    }, 500);
+  }
+
+  /**
    * Réinitialise le plateau de jeu
    */
   #resetBoard() {
     [this.#firstCard, this.#secondCard] = [null, null];
     this.#lockBoard = false;
   }
-
 
   /**
    * Ajoute le formulaire sur la page
@@ -146,31 +162,35 @@ export class DOMManager {
     name.setAttribute('id', 'name');
     form.append(name);
 
-    const labelNivDiff = document.createElement('label');
-    labelNivDiff.htmlFor = 'difficulty';
-    labelNivDiff.textContent = 'Choisissez une difficulté :';
-    form.append(labelNivDiff);
-    const niveauDiff = this.#createNivDiff();
-    form.append(niveauDiff);
+    const labelDiffLevel = document.createElement('label');
+    labelDiffLevel.htmlFor = 'difficulty';
+    labelDiffLevel.textContent = 'Choisissez une difficulté :';
+    form.append(labelDiffLevel);
+    const diffLevel = this.#createNivDiff();
+    form.append(diffLevel);
 
-    const labelChoixImg = document.createElement('label');
-    labelChoixImg.htmlFor = 'theme';
-    labelChoixImg.textContent = 'Choisissez un thème :';
-    form.append(labelChoixImg);
-    const choixImage = this.#createChoixImg();
-    form.append(choixImage);
+    const labelImgChoices = document.createElement('label');
+    labelImgChoices.htmlFor = 'theme';
+    labelImgChoices.textContent = 'Choisissez un thème :';
+    form.append(labelImgChoices);
+    const imgChoi = this.#createChoixImg();
+    form.append(imgChoi);
 
-    const labelChoixMode = document.createElement('label');
-    labelChoixMode.htmlFor = 'mode';
-    labelChoixMode.textContent = 'Choisissez un mode de jeu:';
-    form.append(labelChoixMode);
-    const choixMode = this.#createChoixMode();
-    form.append(choixMode);
+    const labelModeChoices = document.createElement('label');
+    labelModeChoices.htmlFor = 'mode';
+    labelModeChoices.textContent = 'Choisissez un mode de jeu:';
+    form.append(labelModeChoices);
+    const modeChoi = this.#createChoixMode();
+    form.append(modeChoi);
+
 
     const button = document.createElement('button');
     button.setAttribute('type', 'submit');
     button.innerText = 'Jouer';
     form.append(button);
+
+    const descriptionsDiv = this.#createDescriptions();
+    form.append(descriptionsDiv);
 
     document.querySelector('.setup-form').append(form);
   }
@@ -180,31 +200,31 @@ export class DOMManager {
    * @return {HTMLSelectElement} niveauDiff la liste déroulante créée
    */
   #createNivDiff() {
-    const niveauDiff = document.createElement('select');
-    niveauDiff.setAttribute('name', 'difficulty');
-    niveauDiff.setAttribute('id', 'difficulty');
+    const diffLevel = document.createElement('select');
+    diffLevel.setAttribute('name', 'difficulty');
+    diffLevel.setAttribute('id', 'difficulty');
 
     const option4 = document.createElement('option');
     option4.setAttribute('value', '4');
     option4.innerText = '4 paires (Facile)';
-    niveauDiff.append(option4);
+    diffLevel.append(option4);
 
     const option5 = document.createElement('option');
     option5.setAttribute('value', '5');
     option5.innerText = '5 paires (Moyen)';
-    niveauDiff.append(option5);
+    diffLevel.append(option5);
 
     const option6 = document.createElement('option');
     option6.setAttribute('value', '6');
     option6.innerText = '6 paires (Difficile)';
-    niveauDiff.append(option6);
+    diffLevel.append(option6);
 
     const option8 = document.createElement('option');
     option8.setAttribute('value', '8');
     option8.innerText = '8 paires (Extrème)';
-    niveauDiff.append(option8);
+    diffLevel.append(option8);
 
-    return niveauDiff;
+    return diffLevel;
   }
 
   /**
@@ -212,26 +232,26 @@ export class DOMManager {
    * @returns {HTMLSelectElement} choixImage la liste déroulante créée
    */
   #createChoixImg() {
-    const choixImage = document.createElement('select');
-    choixImage.setAttribute('name', 'theme');
-    choixImage.setAttribute('id', 'theme');
+    const imgChoice = document.createElement('select');
+    imgChoice.setAttribute('name', 'theme');
+    imgChoice.setAttribute('id', 'theme');
 
     const optionAn = document.createElement('option');
     optionAn.setAttribute('value', 'animals');
     optionAn.innerText = 'Animaux';
-    choixImage.append(optionAn);
+    imgChoice.append(optionAn);
 
     const optionCar = document.createElement('option');
     optionCar.setAttribute('value', 'cars');
     optionCar.innerText = 'Voitures';
-    choixImage.append(optionCar);
+    imgChoice.append(optionCar);
 
     const optionFruit = document.createElement('option');
     optionFruit.setAttribute('value', 'fruits');
     optionFruit.innerText = 'Fruits';
-    choixImage.append(optionFruit);
+    imgChoice.append(optionFruit);
 
-    return choixImage;
+    return imgChoice;
   }
 
   /**
@@ -239,25 +259,62 @@ export class DOMManager {
    * @returns {HTMLSelectElement} choixMode la liste déroulante créée
    */
   #createChoixMode() {
-    const choixMode = document.createElement('select');
-    choixMode.setAttribute('name', 'mode');
-    choixMode.setAttribute('id', 'mode');
+    const modeChoice = document.createElement('select');
+    modeChoice.setAttribute('name', 'mode');
+    modeChoice.setAttribute('id', 'mode');
 
     const optionBas = document.createElement('option');
     optionBas.setAttribute('value', 'basique');
     optionBas.innerText = 'Basique';
-    choixMode.append(optionBas);
+    modeChoice.append(optionBas);
 
-    const optionVie = document.createElement('option');
-    optionVie.setAttribute('value', 'vie');
-    optionVie.innerText = 'Vies limitées';
-    choixMode.append(optionVie);
+    const optionLife = document.createElement('option');
+    optionLife.setAttribute('value', 'vie');
+    optionLife.innerText = 'Vies limitées';
+    modeChoice.append(optionLife);
 
     const optionTime = document.createElement('option');
     optionTime.setAttribute('value', 'time');
     optionTime.innerText = 'Temps limité';
-    choixMode.append(optionTime);
+    modeChoice.append(optionTime);
 
-    return choixMode;
+    const optionShuffle = document.createElement('option');
+    optionShuffle.setAttribute('value', 'melange');
+    optionShuffle.innerText = 'Mélange à chaque paire';
+    modeChoice.append(optionShuffle);
+
+    return modeChoice;
+  }
+
+  /**
+   * Crée la zone de texte expliquant les modes et le bouton indice
+   * @returns {HTMLDivElement}
+   */
+  #createDescriptions() {
+    const container = document.createElement('div');
+    container.classList.add('game-rules');
+
+    const title = document.createElement('h3');
+    title.textContent = 'Règles & Modes de jeu';
+    container.append(title);
+
+    const ul = document.createElement('ul');
+
+    const rules = [
+      "<strong>Basique :</strong> Trouvez toutes les paires le plus vite possible.",
+      "<strong>Vies limitées :</strong> Chaque erreur vous coûte une vie. Si vous tombez à 0, c'est perdu !",
+      "<strong>Temps limité :</strong> Battez le chronomètre ! Vous avez un temps précis selon la difficulté.",
+      "<strong>Mélange à chaque paire :</strong> Dès qu'une paire est trouvée, les cartes restantes changent de place.",
+      "<strong>Bouton Indice :</strong> Une fois par partie, il retourne toutes les cartes cachées pendant 1 seconde pour vous aider."
+    ];
+
+    rules.forEach(rule => {
+      const li = document.createElement('li');
+      li.innerHTML = rule;
+      ul.append(li);
+    });
+
+    container.append(ul);
+    return container;
   }
 }

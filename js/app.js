@@ -1,7 +1,6 @@
 import {DOMManager} from "./DOMManager.js";
-import {Game} from './Game.js';
+import Game from './Game.js';
 import {ApiService} from './ApiService.js';
-
 const domManager = new DOMManager();
 const game = new Game();
 
